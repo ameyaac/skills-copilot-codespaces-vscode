@@ -3,25 +3,25 @@ const url = require('url');
 const fs = require('fs');
 const path = require('path');
 
-// Constants
 const PORT = 3000;
 const COMMENTS_FILE = './data/comments.json';
 const VIEWS_PATH = './views';
 const PUBLIC_PATH = './public';
 
-// Function to read file asynchronously
 const readFile = (filePath, res) => {
   fs.readFile(filePath, (err, data) => {
     if (err) {
       res.statusCode = 404;
-      return res.end('404 Not Found');
+      res.end('404 Not Found');
+    } else {
+      res.statusCode = 200; // Ensure we send a status code
+      res.end(data);
     }
-    res.end(data);
   });
 };
 
-// Function to handle routes
 const handleRoute = (pathname, req, res) => {
+  console.log(`Handling route: ${pathname}`);
   switch (pathname) {
     case '/':
       readFile(path.join(VIEWS_PATH, 'index.html'), res);
@@ -42,11 +42,9 @@ const handleRoute = (pathname, req, res) => {
   }
 };
 
-// Function to handle comments
 const handleComment = (req, res) => {
   const comment = url.parse(req.url, true).query;
   comment.dateTime = new Date().toISOString();
-  // Read and update comments file asynchronously
   fs.readFile(COMMENTS_FILE, (err, data) => {
     let comments = [];
     if (!err) {
@@ -62,7 +60,6 @@ const handleComment = (req, res) => {
   });
 };
 
-// Create the HTTP server
 http.createServer((req, res) => {
   const pathname = url.parse(req.url, true).pathname;
   handleRoute(pathname, req, res);
