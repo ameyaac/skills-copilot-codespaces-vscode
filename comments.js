@@ -5,23 +5,23 @@ var url = require('url');
 var fs = require('fs');
 var path = require('path');
 
-// var comments = [
-//     {
-//         name: '张三',
-//         message: '今天天气不错',
-//         dateTime: '2020-07-10'
-//     },
-//     {
-//         name: '李四',
-//         message: '今天天气不错',
-//         dateTime: '2020-07-10'
-//     },
-//     {
-//         name: '王五',
-//         message: '今天天气不错',
-//         dateTime: '2020-07-10'
-//     }
-// ];
+var comments = [
+    {
+        name: '张三',
+        message: '今天天气不错',
+        dateTime: '2020-07-10'
+    },
+    {
+        name: '李四',
+        message: '今天天气不错',
+        dateTime: '2020-07-10'
+    },
+    {
+        name: '王五',
+        message: '今天天气不错',
+        dateTime: '2020-07-10'
+    }
+];
 
 // 1. 创建一个http服务
 http.createServer(function(req, res) {
