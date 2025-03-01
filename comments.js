@@ -1,73 +1,71 @@
-// create a web server
+const http = require('http');
+const url = require('url');
+const fs = require('fs');
+const path = require('path');
 
-var http = require('http');
-var url = require('url');
-var fs = require('fs');
-var path = require('path');
+// Constants
+const PORT = 3000;
+const COMMENTS_FILE = './data/comments.json';
+const VIEWS_PATH = './views';
+const PUBLIC_PATH = './public';
 
-var comments = [
-    {
-        name: '张三',
-        message: '今天天气不错',
-        dateTime: '2020-07-10'
-    },
-    {
-        name: '李四',
-        message: '今天天气不错',
-        dateTime: '2020-07-10'
-    },
-    {
-        name: '王五',
-        message: '今天天气不错',
-        dateTime: '2020-07-10'
+// Function to read file asynchronously
+const readFile = (filePath, res) => {
+  fs.readFile(filePath, (err, data) => {
+    if (err) {
+      res.statusCode = 404;
+      return res.end('404 Not Found');
     }
-];
+    res.end(data);
+  });
+};
 
-// 1. 创建一个http服务
-http.createServer(function(req, res) {
-    var parseObj = url.parse(req.url, true);
-    var pathname = parseObj.pathname;
-    if (pathname === '/') {
-        fs.readFile('./views/index.html', function(err, data) {
-            if (err) {
-                return res.end('404 Not Found');
-            }
-            res.end(data);
-        });
-    } else if (pathname === '/post') {
-        fs.readFile('./views/post.html', function(err, data) {
-            if (err) {
-                return res.end('404 Not Found');
-            }
-            res.end(data);
-        });
-    } else if (pathname.indexOf('/public/') === 0) {
-        fs.readFile('.' + pathname, function(err, data) {
-            if (err) {
-                return res.end('404 Not Found');
-            }
-            res.end(data);
-        });
-    } else if (pathname === '/pinglun') {
-        var comment = parseObj.query;
-        comment.dateTime = '2020-07-10';
-        comments.unshift(comment);
-        res.statusCode = 302;
-        res.setHeader('Location', '/');
-        res.end();
-    } else {
-        fs.readFile('./views/404.html', function(err, data) {
-            if (err) {
-                return res.end('404 Not Found');
-            }
-            res.end(data);
-        });
+// Function to handle routes
+const handleRoute = (pathname, req, res) => {
+  switch (pathname) {
+    case '/':
+      readFile(path.join(VIEWS_PATH, 'index.html'), res);
+      break;
+    case '/post':
+      readFile(path.join(VIEWS_PATH, 'post.html'), res);
+      break;
+    case '/pinglun':
+      handleComment(req, res);
+      break;
+    default:
+      if (pathname.startsWith('/public/')) {
+        readFile(path.join(PUBLIC_PATH, pathname), res);
+      } else {
+        readFile(path.join(VIEWS_PATH, '404.html'), res);
+      }
+      break;
+  }
+};
+
+// Function to handle comments
+const handleComment = (req, res) => {
+  const comment = url.parse(req.url, true).query;
+  comment.dateTime = new Date().toISOString();
+  // Read and update comments file asynchronously
+  fs.readFile(COMMENTS_FILE, (err, data) => {
+    let comments = [];
+    if (!err) {
+      comments = JSON.parse(data);
     }
-}).listen(3000, function() {
-    console.log('running...');
+    comments.unshift(comment);
+    fs.writeFile(COMMENTS_FILE, JSON.stringify(comments), (err) => {
+      if (err) throw err;
+      res.statusCode = 302;
+      res.setHeader('Location', '/');
+      res.end();
+    });
+  });
+};
+
+// Create the HTTP server
+http.createServer((req, res) => {
+  const pathname = url.parse(req.url, true).pathname;
+  handleRoute(pathname, req, res);
+}).listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
-
-// 2. 读取文件
-// 3. 处理请求
-// 4. 发送响应
-// 5. 绑定端口号，启动服务
