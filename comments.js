@@ -1,37 +1,73 @@
 // create a web server
 
-// load the http module
 var http = require('http');
+var url = require('url');
 var fs = require('fs');
 var path = require('path');
-var url = require('url');
-var qs = require('querystring');
-var comments = [];
 
-// create an http server
-http.createServer(function (req, res) {
-    // parse the request containing file name
-    var pathname = url.parse(req.url).pathname;
-    console.log("Request for " + pathname + " received.");
+// var comments = [
+//     {
+//         name: '张三',
+//         message: '今天天气不错',
+//         dateTime: '2020-07-10'
+//     },
+//     {
+//         name: '李四',
+//         message: '今天天气不错',
+//         dateTime: '2020-07-10'
+//     },
+//     {
+//         name: '王五',
+//         message: '今天天气不错',
+//         dateTime: '2020-07-10'
+//     }
+// ];
 
-    // read the requested file content from file system
-    fs.readFile(pathname.substr(1), function (err, data) {
-        if (err) {
-            console.log(err);
-            // HTTP Status: 404 : NOT FOUND
-            // Content Type: text/plain
-            res.writeHead(404, {'Content-Type': 'text/html'});
-        } else {
-            // Page found
-            // HTTP Status: 200 : OK
-            // Content Type: text/plain
-            res.writeHead(200, {'Content-Type': 'text/html'});
-            // write the content of the file to response body
-            res.write(data.toString());
-        }
-        // send the response body
+// 1. 创建一个http服务
+http.createServer(function(req, res) {
+    var parseObj = url.parse(req.url, true);
+    var pathname = parseObj.pathname;
+    if (pathname === '/') {
+        fs.readFile('./views/index.html', function(err, data) {
+            if (err) {
+                return res.end('404 Not Found');
+            }
+            res.end(data);
+        });
+    } else if (pathname === '/post') {
+        fs.readFile('./views/post.html', function(err, data) {
+            if (err) {
+                return res.end('404 Not Found');
+            }
+            res.end(data);
+        });
+    } else if (pathname.indexOf('/public/') === 0) {
+        fs.readFile('.' + pathname, function(err, data) {
+            if (err) {
+                return res.end('404 Not Found');
+            }
+            res.end(data);
+        });
+    } else if (pathname === '/pinglun') {
+        var comment = parseObj.query;
+        comment.dateTime = '2020-07-10';
+        comments.unshift(comment);
+        res.statusCode = 302;
+        res.setHeader('Location', '/');
         res.end();
-    });
-}).listen(8080);
+    } else {
+        fs.readFile('./views/404.html', function(err, data) {
+            if (err) {
+                return res.end('404 Not Found');
+            }
+            res.end(data);
+        });
+    }
+}).listen(3000, function() {
+    console.log('running...');
+});
 
-console.log('Server running at http:// ' + 'localhost:8080/');
+// 2. 读取文件
+// 3. 处理请求
+// 4. 发送响应
+// 5. 绑定端口号，启动服务
