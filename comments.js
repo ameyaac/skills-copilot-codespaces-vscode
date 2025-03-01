@@ -4,24 +4,22 @@ const fs = require('fs');
 const path = require('path');
 
 const PORT = 3000;
-const COMMENTS_FILE = './data/comments.json';
-const VIEWS_PATH = './views';
-const PUBLIC_PATH = './public';
+const COMMENTS_FILE = 'comments.json'; // Ensure this file exists in your online editor
+const VIEWS_PATH = 'views';
+const PUBLIC_PATH = 'public';
 
-const readFile = (filePath, res) => {
+const readFile = (filePath, res, contentType = 'text/html') => {
   fs.readFile(filePath, (err, data) => {
     if (err) {
-      res.statusCode = 404;
-      res.end('404 Not Found');
-    } else {
-      res.statusCode = 200; // Ensure we send a status code
-      res.end(data);
+      res.writeHead(404, { 'Content-Type': 'text/plain' });
+      return res.end('404 Not Found');
     }
+    res.writeHead(200, { 'Content-Type': contentType });
+    res.end(data);
   });
 };
 
 const handleRoute = (pathname, req, res) => {
-  console.log(`Handling route: ${pathname}`);
   switch (pathname) {
     case '/':
       readFile(path.join(VIEWS_PATH, 'index.html'), res);
@@ -34,7 +32,9 @@ const handleRoute = (pathname, req, res) => {
       break;
     default:
       if (pathname.startsWith('/public/')) {
-        readFile(path.join(PUBLIC_PATH, pathname), res);
+        const ext = path.extname(pathname).slice(1);
+        const contentType = ext === 'css' ? 'text/css' : 'application/javascript';
+        readFile(path.join(PUBLIC_PATH, pathname), res, contentType);
       } else {
         readFile(path.join(VIEWS_PATH, '404.html'), res);
       }
@@ -53,8 +53,7 @@ const handleComment = (req, res) => {
     comments.unshift(comment);
     fs.writeFile(COMMENTS_FILE, JSON.stringify(comments), (err) => {
       if (err) throw err;
-      res.statusCode = 302;
-      res.setHeader('Location', '/');
+      res.writeHead(302, { 'Location': '/' });
       res.end();
     });
   });
