@@ -11,7 +11,7 @@ http.createServer(function (req, res) {
   console.log('Server running on port 8080');
 
   // Make an internal request to the server with the query string
-  http.get('http://localhost:8080/?year=2017&month=July', (resp) => {
+  http.get('http://fantastic-lamp-pqgjpq4w665frx76-8080.app.github.dev/?year=2017&month=July', (resp) => {
     let data = '';
     resp.on('data', (chunk) => {
       data += chunk;
