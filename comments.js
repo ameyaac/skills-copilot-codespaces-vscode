@@ -1,24 +1,40 @@
 // Create Web Server
 
 const express = require('express');
+const bodyParser = require('body-parser');
+const fs = require('fs');
 const app = express();
 
-// Create route
+app.use(bodyParser.json());
+
 app.get('/comments', (req, res) => {
-  res.send('This is the comment page');
+  fs.readFile('./comments.json', 'utf8', (err, data) => {
+    if (err) {
+      res.status(500).send('Could not read comments file.');
+    } else {
+      res.send(data);
+    }
+  });
 });
 
-// Create route
-app.get('/comments/new', (req, res) => {
-  res.send('This is the new comment page');
+app.post('/comments', (req, res) => {
+  fs.readFile('./comments.json', 'utf8', (err, data) => {
+    if (err) {
+      res.status(500).send('Could not read comments file.');
+    } else {
+      const comments = JSON.parse(data);
+      comments.push(req.body);
+      fs.writeFile('./comments.json', JSON.stringify(comments), err => {
+        if (err) {
+          res.status(500).send('Could not write comments file.');
+        } else {
+          res.send('Comment added.');
+        }
+      });
+    }
+  });
 });
 
-// Create route
-app.get('/comments/:id', (req, res) => {
-  res.send('This is the comment ' + req.params.id + ' page');
-});
-
-// Start server
 app.listen(3000, () => {
-  console.log('Server has started');
+  console.log('Server is running on port 3000');
 });
